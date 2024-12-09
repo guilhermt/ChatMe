@@ -38,10 +38,13 @@ export const handler = async (event: APIGatewayEvent) => {
       keys: messageKeys,
       pageSize,
       lastKey,
+      inverse: true,
       gsi: true
     });
 
-    return httpResponse({ messages, lastEvaluetedKey });
+    const sortedMessages = messages.reverse();
+
+    return httpResponse({ messages: sortedMessages, lastEvaluetedKey });
   } catch (e) {
     console.log(e);
     return httpResponse('Something went wrong.', 500);
