@@ -1,0 +1,46 @@
+{
+  "name": "chat-me-infra",
+  "license": "UNLICENSED",
+  "version": "0.1.0",
+  "bin": {
+    "chat-me": "bin/chat-me.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "deploy": "bash ./scripts/deploy.sh"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.133",
+    "@types/busboy": "^1.5.4",
+    "@types/node": "20.10.8",
+    "@types/uuid": "^9.0.8",
+    "@typescript-eslint/eslint-plugin": "^6.4.0",
+    "aws-cdk": "2.121.1",
+    "esbuild": "^0.20.0",
+    "eslint": "^8.0.1",
+    "eslint-config-standard-with-typescript": "^43.0.1",
+    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-n": "^15.0.0 || ^16.0.0 ",
+    "eslint-plugin-promise": "^6.0.0",
+    "prettier": "3.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "*"
+  },
+  "dependencies": {
+    "@aws-sdk/client-apigatewaymanagementapi": "^3.699.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.511.0",
+    "@aws-sdk/client-dynamodb": "^3.513.0",
+    "@aws-sdk/client-s3": "^3.515.0",
+    "@aws-sdk/client-sqs": "^3.699.0",
+    "@aws-sdk/util-dynamodb": "^3.513.0",
+    "aws-cdk-lib": "2.121.1",
+    "aws-jwt-verify": "^4.0.1",
+    "aws-lambda": "^1.0.7",
+    "axios": "^1.7.8",
+    "busboy": "^1.6.0",
+    "constructs": "^10.0.0",
+    "dotenv": "^16.4.5",
+    "uuid": "^9.0.1"
+  }
+}

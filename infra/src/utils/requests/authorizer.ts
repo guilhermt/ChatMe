@@ -1,0 +1,50 @@
+import { type APIGatewayEvent } from 'aws-lambda';
+import { CognitoJwtVerifier } from 'aws-jwt-verify';
+import { getDynamoItem } from '../dynamo/getItem';
+import { httpResponse } from './httpResponse';
+import { type Models } from '../../@types/models';
+
+const clientId = process.env.USERPOOL_CLIENT_ID ?? '';
+
+const cognitoJwtVerifier = CognitoJwtVerifier.create({
+  userPoolId: process.env.USERPOOL_ID ?? '',
+  tokenUse: 'access'
+});
+
+export const authorizer = async (event: APIGatewayEvent) => {
+  try {
+    const getToken = () => {
+      const { authorization, Authorization } = event.headers;
+
+      if (authorization) return authorization;
+
+      if (Authorization) return Authorization;
+
+      return event?.queryStringParameters?.token ?? '';
+    };
+
+    const auth = getToken();
+
+    const token = auth.split(' ').at(-1) ?? '';
+
+    const decodedJWT = await cognitoJwtVerifier.verify(token, {
+      clientId
+    });
+
+    const userId = decodedJWT.username;
+
+    const user = await getDynamoItem<Models.User>({
+      pk: 'user',
+      sk: `user#${userId}`
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    return { user };
+  } catch (e) {
+    console.error('Error:', e);
+    return httpResponse('Unauthorized', 401);
+  }
+};

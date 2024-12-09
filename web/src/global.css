@@ -1,0 +1,45 @@
+html,
+body {
+  min-height: 100% !important;
+  height: 100% !important;
+  scrollbar-gutter: stable;
+}
+
+html body[data-scroll-locked] {
+  margin-right: 0px !important;
+}
+
+.module-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+  width: 100%;
+  max-width: 1400px;
+  padding: 0 3rem;
+  padding-top: 1.5rem;
+  padding-bottom: 1rem;
+
+  @media (max-width: 1400px) {
+    padding: 0 3rem;
+    padding-top: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    padding: 0.5rem 1rem;
+    padding-bottom: 1rem;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 0.8rem;
+}
+
+::-webkit-scrollbar-thumb {
+  position: fixed;
+  background: #bbbbbb;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #999999;
+}
