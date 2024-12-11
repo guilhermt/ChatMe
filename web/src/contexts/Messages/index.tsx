@@ -34,7 +34,7 @@ interface Props {
   children: React.ReactNode;
 }
 
-export const PAGE_SIZE = 30;
+export const PAGE_SIZE = 50;
 
 const context = createContext<MessagesContextData>({} as MessagesContextData);
 

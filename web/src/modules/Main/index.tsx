@@ -1,7 +1,7 @@
-import { Avatar, Button, Card, Center, Container, Divider, Flex, Image, Indicator, ScrollAreaAutosize, Stack, Text, TextInput, ThemeIcon } from '@mantine/core';
+import { Avatar, Button, Card, Center, Container, Divider, Flex, Image, Indicator, Loader, LoadingOverlay, ScrollAreaAutosize, Stack, Text, TextInput, ThemeIcon } from '@mantine/core';
 import { IconSend } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useChats } from '@/contexts/Chats';
 import { getLastSeenLabel } from '@/utils/getLastSeenLabel';
 import { getFormattedHour } from '@/utils/getFormattedHour';
@@ -15,9 +15,28 @@ interface NewMessageForm {
 export const Main = () => {
   const { activeChat } = useChats();
 
-  const { messages, handleSendMessage } = useMessages();
+  const { messages, handleSendMessage, handlePaginate } = useMessages();
 
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const observer = useRef<IntersectionObserver>();
+
+  const lastItemRef = useCallback(
+    (node: HTMLDivElement) => {
+      if (messages.isLoading || !messages.lastKey) return;
+
+      if (observer.current) observer.current?.disconnect();
+
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+          handlePaginate();
+        }
+      });
+
+      if (node) observer.current.observe(node);
+    },
+    [messages.isLoading, messages.lastKey]
+  );
 
   const [initialScroll, setInitialScroll] = useState(true);
 
@@ -52,13 +71,17 @@ export const Main = () => {
     </Container>
   );
 
-  const renderMessage = (message: Models.Message) => {
+  const renderMessage = (message: Models.Message, index: number) => {
     const { senderId, content: { data }, createdAt } = message;
 
     const isSentByUser = senderId !== activeChat?.contactId;
 
+    const isLast = index === 10;
+
+    const refValue = isLast ? lastItemRef : null;
+
     return (
-      <Stack align={isSentByUser ? 'end' : 'start'} gap={0} key={message.createdAt}>
+      <Stack align={isSentByUser ? 'end' : 'start'} gap={0} key={message.createdAt} ref={refValue}>
         <Card w="fit-content" p="8px 10px" bg={isSentByUser ? 'grape.1' : ''} radius="md" maw="65%" withBorder pos="relative">
 
           <Text lh={1.2}>{data} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</Text>
@@ -69,6 +92,12 @@ export const Main = () => {
       </Stack>
     );
   };
+
+  const renderLoader = () => (
+    <Center w="100%" h={40}>
+      <Loader size="sm" />
+    </Center>
+  );
 
   useEffect(() => {
     if (!messages.data.length) return;
@@ -93,9 +122,13 @@ export const Main = () => {
 
   if (!activeChat) return renderNoChatMessage();
 
+  const isReloading = messages?.isLoading === 'search';
+
+  const isPaginating = !isReloading && !!messages.lastKey;
+
   return (
     <Container className="module-container">
-      <Stack w="100%" h="100%">
+      <Stack w="100%" h="100%" pos="relative">
 
         <Flex gap="xs" align="center">
           <Indicator color="green" position="bottom-end" size={15} offset={4} withBorder disabled={!isOnline}>
@@ -111,8 +144,17 @@ export const Main = () => {
 
         <Divider />
 
+        <LoadingOverlay
+          visible={isReloading}
+          overlayProps={{ backgroundOpacity: 0 }}
+          loaderProps={{ type: 'bars' }}
+        />
+
         <ScrollAreaAutosize h="100%" viewportRef={scrollRef}>
           <Stack gap="xs" p="0 200px">
+
+            {isPaginating && renderLoader()}
+
             {messages.data.map(renderMessage)}
           </Stack>
         </ScrollAreaAutosize>
