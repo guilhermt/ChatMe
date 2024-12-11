@@ -1,6 +1,7 @@
 import { Avatar, Button, Card, Center, Container, Divider, Flex, Image, Indicator, ScrollAreaAutosize, Stack, Text, TextInput, ThemeIcon } from '@mantine/core';
 import { IconSend } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
+import { useEffect, useRef, useState } from 'react';
 import { useChats } from '@/contexts/Chats';
 import { getLastSeenLabel } from '@/utils/getLastSeenLabel';
 import { getFormattedHour } from '@/utils/getFormattedHour';
@@ -15,6 +16,10 @@ export const Main = () => {
   const { activeChat } = useChats();
 
   const { messages, handleSendMessage } = useMessages();
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const [initialScroll, setInitialScroll] = useState(true);
 
   const form = useForm<NewMessageForm>({
     initialValues: {
@@ -54,19 +59,42 @@ export const Main = () => {
 
     return (
       <Stack align={isSentByUser ? 'end' : 'start'} gap={0} key={message.createdAt}>
-        <Card w="fit-content" p="8px 10px" bg={isSentByUser ? 'grape.1' : ''} radius="md" maw="65%" withBorder>
-          <Text lh={1.2}>{data}</Text>
+        <Card w="fit-content" p="8px 10px" bg={isSentByUser ? 'grape.1' : ''} radius="md" maw="65%" withBorder pos="relative">
+
+          <Text lh={1.2}>{data} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</Text>
+
+          <Text fz={10} fw={400} c="dark.4" pos="absolute" right={8} bottom={4}>{getFormattedHour(createdAt)}</Text>
         </Card>
 
-        <Text fz={11} fw={500} c="dark.3">{getFormattedHour(createdAt)}</Text>
       </Stack>
     );
   };
 
+  useEffect(() => {
+    if (!messages.data.length) return;
+
+    if (!scrollRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+
+    const isAtBottom = scrollHeight - scrollTop <= clientHeight + 300;
+
+    if (!isAtBottom && !initialScroll) return;
+
+    const behavior = initialScroll ? 'instant' : 'smooth';
+
+    scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior });
+
+    if (initialScroll) setInitialScroll(false);
+  }, [messages.data]);
+
+  useEffect(() => {
+    setInitialScroll(true);
+  }, [activeChat?.id]);
+
   if (!activeChat) return renderNoChatMessage();
 
   return (
-    <Container className="dashboard-module-container">
+    <Container className="module-container">
       <Stack w="100%" h="100%">
 
         <Flex gap="xs" align="center">
@@ -83,7 +111,7 @@ export const Main = () => {
 
         <Divider />
 
-        <ScrollAreaAutosize h="100%">
+        <ScrollAreaAutosize h="100%" viewportRef={scrollRef}>
           <Stack gap="xs" p="0 200px">
             {messages.data.map(renderMessage)}
           </Stack>
