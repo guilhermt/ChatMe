@@ -43,24 +43,3 @@ export const numberValidation = (fieldName: string, value: any, minValue?: numbe
 
   return value;
 };
-
-export const lastKeyValidation = (value: any) => {
-  if (!value) {
-    return undefined;
-  }
-
-  if (typeof value !== 'object') {
-    throw new Error('Last Key should be an object');
-  }
-
-  if (!('pk' in value) || !('sk' in value)) {
-    throw new Error('Last Key has incorrect format');
-  }
-
-  const parsedLastKey = {
-    pk: value.pk,
-    sk: value.sk
-  };
-
-  return parsedLastKey;
-};

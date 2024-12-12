@@ -2,27 +2,25 @@ import { type ParsedFile } from '../requests/parseMultipartBody';
 import { uploadFileToS3 } from './saveFile';
 
 interface Props {
-  orgId: string;
-  productId: string;
-  image?: ParsedFile | string;
+  userId: string;
+  profilePicture?: ParsedFile
 }
 
-export const uploadProductImage = async ({
-  orgId,
-  productId,
-  image
+export const uploadProfilePicture = async ({
+  userId,
+  profilePicture
 }: Props) => {
-  if (!image) return undefined;
+  if (!profilePicture) return null;
 
-  if (typeof image === 'string') return image;
+  const { type, content } = profilePicture;
 
-  const imageId = productId.split('#').at(-1);
+  const imageExtension = (type ?? '').split('/').at(-1);
 
-  const imageExtension = (image?.type ?? '').split('/').at(-1);
+  const now = Date.now();
 
-  const imagePath = `${orgId}/product-images/${imageId}.${imageExtension}`;
+  const s3PathKey = `profile-pictures/${userId}/${now}.${imageExtension}`;
 
-  const imageUrl = await uploadFileToS3(image.content, imagePath, image.type);
+  const imageUrl = await uploadFileToS3(content, s3PathKey, type);
 
   return imageUrl;
 };

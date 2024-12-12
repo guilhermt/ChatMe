@@ -92,6 +92,13 @@ export class RestAPI extends Construct {
         lambdaEntry: 'messages/listMessages.ts',
         routePath: '/messages/{chatId}',
         routeMethod: HttpMethod.GET
+      },
+      {
+        lambdaName: 'updateProfile',
+        lambdaEntry: 'users/updateProfile.ts',
+        routePath: '/users/me',
+        routeMethod: HttpMethod.PATCH,
+        bucketPermission: true
       }
     ];
 

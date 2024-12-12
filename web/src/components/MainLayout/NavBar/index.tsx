@@ -1,24 +1,19 @@
 import { Avatar, Badge, Box, Button, Card, Center, Flex, Image, Indicator, Loader, ScrollAreaAutosize, Skeleton, Stack, Text, TextInput, UnstyledButton } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
-import { IconLogout, IconPlus, IconSearch } from '@tabler/icons-react';
+import { IconPlus, IconSearch } from '@tabler/icons-react';
 import { modals } from '@mantine/modals';
 import { useCallback, useRef } from 'react';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { NewChatModal } from '@/components/NewChatModal';
 import { useChats } from '@/contexts/Chats';
 import { Models } from '@/@types/models';
-import { useAuth } from '@/contexts/Authentication';
 import { getChatLabel } from '@/utils/getChatTimeLabel';
-import { useClearAllContexts } from '@/hooks/useClearContexts';
+import { UserProfileCard } from '@/components/UserProfileCard';
 
 export const NavBar = () => {
   const isMobile = useIsMobile();
 
   const navigate = useNavigate();
-
-  const { handleLogout } = useAuth();
-
-  const clearAllContexts = useClearAllContexts();
 
   const { chats, activeChat, setActiveChat, search, setSearch, handlePaginate } = useChats();
 
@@ -50,11 +45,6 @@ export const NavBar = () => {
     },
     size: 'xl',
   });
-
-  const handleLogoutClick = () => {
-    handleLogout();
-    clearAllContexts();
-  };
 
   const renderDesktopLogo = () => (
     <Flex w="100%" justify="center" mt="md" mb="sm">
@@ -209,16 +199,8 @@ export const NavBar = () => {
         {isPaginating && renderLoader()}
       </ScrollAreaAutosize>
 
-      <Button
-        fullWidth
-        variant="subtle"
-        style={{ alignSelf: 'center' }}
-        leftSection={<IconLogout size={20} />}
-        size="sm"
-        onClick={handleLogoutClick}
-      >
-        Sair
-      </Button>
+      <UserProfileCard />
+
     </Stack>
   );
 };
