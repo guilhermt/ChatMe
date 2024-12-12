@@ -163,6 +163,8 @@ export const NavBar = () => {
 
   const isPaginating = !isReloading && !!chats.lastKey;
 
+  const noChats = !chats.isLoading && !chats.data.length;
+
   return (
     <Stack h="100%" bg={isMobile ? '' : '#fff'} pl="sm" pr="sm" pb="md">
       {!isMobile && renderDesktopLogo()}
@@ -197,6 +199,8 @@ export const NavBar = () => {
         </Stack>
 
         {isPaginating && renderLoader()}
+
+        {noChats && <Text ta="center">Nenhuma conversa encontrada</Text>}
       </ScrollAreaAutosize>
 
       <UserProfileCard />

@@ -126,6 +126,44 @@ export const Main = () => {
     );
   };
 
+  const renderMessagesWithDateHeaders = () => {
+    let lastDate: string | null = null;
+
+    const todayDate = new Date().toLocaleDateString();
+
+    const yesterdayDate = new Date(Date.now() - (1000 * 60 * 60 * 24)).toLocaleDateString();
+
+    const getDateLabel = (date: string) => {
+      if (date === todayDate) return 'Hoje';
+
+      if (date === yesterdayDate) return 'Ontem';
+
+      return date;
+    };
+
+    return messages.data.map((message, index) => {
+      const messageDate = new Date(message.createdAt).toLocaleDateString();
+
+      const isNewDate = messageDate !== lastDate;
+
+      lastDate = messageDate;
+
+      return (
+        <div key={message.id}>
+          {isNewDate && (
+            <Center>
+              <Text fz={14} fw={500} c="dark.4" mt="md" mb="xs">
+                {getDateLabel(messageDate)}
+              </Text>
+            </Center>
+          )}
+
+          {renderMessage(message, index)}
+        </div>
+      );
+    });
+  };
+
   const renderLoader = () => (
     <Center w="100%" h={40}>
       <Loader size="sm" />
@@ -198,7 +236,7 @@ export const Main = () => {
 
             {isPaginating && renderLoader()}
 
-            {messages.data.map(renderMessage)}
+            {renderMessagesWithDateHeaders()}
           </Stack>
         </ScrollAreaAutosize>
 
