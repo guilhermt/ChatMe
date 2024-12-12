@@ -78,6 +78,12 @@ export class WebSocketAPI extends Construct {
       ...baseLambdaProps
     });
 
+    const viewChatHandler = new NodejsFunction(this, 'ChatMe-ViewChat', {
+      functionName: getEnvName('ChatMe-ViewChat'),
+      entry: path.join(handlersPath, 'viewChat.ts'),
+      ...baseLambdaProps
+    });
+
     const webSocketApi = new WebSocketApi(this, 'WebSocketApi', {
       apiName: getEnvName('ChatMe WebSocket API'),
       connectRouteOptions: {
@@ -90,6 +96,10 @@ export class WebSocketAPI extends Construct {
 
     webSocketApi.addRoute('sendMessage', {
       integration: new WebSocketLambdaIntegration('SendMessageRoute', sendMessageHandler)
+    });
+
+    webSocketApi.addRoute('viewChat', {
+      integration: new WebSocketLambdaIntegration('ViewChatRoute', viewChatHandler)
     });
 
     new WebSocketStage(this, 'WebSocketApiStage', {
@@ -114,6 +124,7 @@ export class WebSocketAPI extends Construct {
     dynamoTable.grantReadWriteData(disconnectHandler);
     dynamoTable.grantReadWriteData(sqsHandler);
     dynamoTable.grantReadWriteData(sendMessageHandler);
+    dynamoTable.grantReadWriteData(viewChatHandler);
 
     webSocketApi.grantManageConnections(connectHandler);
     webSocketApi.grantManageConnections(disconnectHandler);

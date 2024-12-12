@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { type DataType } from './enums';
 
 export interface DynamoItem {
   pk: string;
@@ -6,11 +7,13 @@ export interface DynamoItem {
   id: string;
   createdAt: number;
   updatedAt: number;
+  dataType: DataType;
   gsi?: number
 }
 
 export namespace Models {
   interface User extends DynamoItem {
+    dataType: DataType.USER;
     name: string;
     searchName: string;
     email: string;
@@ -20,11 +23,13 @@ export namespace Models {
   }
 
   interface Chat extends DynamoItem {
+    dataType: DataType.CHAT;
     contactId: string;
     contactSearchName: string;
-    lastMessage: string;
+    lastMessage: string
     startedBy: string
-    gsi: number
+    gsi: number;
+    unreadMessages: number
   }
 
   interface ExtendedChat extends Chat {
@@ -36,10 +41,12 @@ export namespace Models {
   }
 
   interface Connection extends DynamoItem {
+    dataType: DataType.CONNECTION;
     userId: string
   }
 
   interface Message extends DynamoItem {
+    dataType: DataType.MESSAGE;
     content: {
       type: 'text',
       data: string

@@ -5,6 +5,7 @@ import { createCognitoAccount } from '../../../utils/cognito/signUp';
 import { type Models } from '../../../@types/models';
 import { createDynamoItem } from '../../../utils/dynamo/createItem';
 import { sendNewUserNotification } from '../../../utils/slack/newUserNotification';
+import { DataType } from '../../../@types/enums';
 
 export const handler = async (event: APIGatewayEvent) => {
   try {
@@ -26,6 +27,7 @@ export const handler = async (event: APIGatewayEvent) => {
       pk: 'user',
       sk: `user#${userId}`,
       id: userId,
+      dataType: DataType.USER,
       createdAt: now,
       updatedAt: now,
       lastSeen: now,

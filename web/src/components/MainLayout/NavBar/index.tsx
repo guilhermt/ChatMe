@@ -1,4 +1,4 @@
-import { Avatar, Button, Card, Center, Flex, Image, Indicator, Loader, ScrollAreaAutosize, Skeleton, Stack, Text, TextInput, UnstyledButton } from '@mantine/core';
+import { Avatar, Badge, Button, Card, Center, Flex, Image, Indicator, Loader, ScrollAreaAutosize, Skeleton, Stack, Text, TextInput, UnstyledButton } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import { IconLogout, IconPlus, IconSearch } from '@tabler/icons-react';
 import { modals } from '@mantine/modals';
@@ -79,6 +79,8 @@ export const NavBar = () => {
 
     const refValue = isLast ? lastItemRef : null;
 
+    const newMessages = chat.unreadMessages;
+
     return (
       <UnstyledButton
         onClick={() => setActiveChat(chat)}
@@ -90,7 +92,7 @@ export const NavBar = () => {
           ref={refValue}
           style={{ transition: 'background-color 0.1s ease' }}
           onMouseEnter={(e) => {
-            if (!isActive) e.currentTarget.style.backgroundColor = '#f0f0f0'; // Hover color
+            if (!isActive) e.currentTarget.style.backgroundColor = '#f0f0f0';
           }}
           onMouseLeave={(e) => {
             if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
@@ -108,7 +110,11 @@ export const NavBar = () => {
                 <Text fz={13} fw={500} c="dark.3">{getChatLabel(chat.updatedAt)}</Text>
               </Flex>
 
-              <Text fz={13} fw={400} c="dark.3">{chat.lastMessage || 'Comece a conversar'}</Text>
+              <Flex justify="space-between" align="center">
+                <Text fz={13} fw={400} c="dark.3">{chat.lastMessage || 'Comece a conversar'}</Text>
+
+                {!!newMessages && <Badge circle>{newMessages}</Badge>}
+              </Flex>
             </Stack>
           </Flex>
         </Card>

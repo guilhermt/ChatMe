@@ -6,6 +6,7 @@ import { authorizer } from '../../../utils/requests/authorizer';
 import { getDynamoItem } from '../../../utils/dynamo/getItem';
 import { v4 } from 'uuid';
 import { getAllDynamoItems } from '../../../utils/dynamo/getAllItems';
+import { DataType } from '../../../@types/enums';
 
 export const handler = async (event: APIGatewayEvent) => {
   try {
@@ -61,26 +62,30 @@ export const handler = async (event: APIGatewayEvent) => {
       pk: `chat#${user.id}`,
       sk: `chat#${chatId}`,
       id: chatId,
+      dataType: DataType.CHAT,
       createdAt: now,
       updatedAt: now,
       gsi: now,
       startedBy: user.id,
       contactId,
       contactSearchName: receiverUser.searchName,
-      lastMessage: ''
+      lastMessage: '',
+      unreadMessages: 0
     };
 
     const receiverChat: Models.Chat = {
       pk: `chat#${receiverUser.id}`,
       sk: `chat#${chatId}`,
       id: chatId,
+      dataType: DataType.CHAT,
       createdAt: now,
       updatedAt: now,
       gsi: now,
       startedBy: user.id,
       contactId: user.id,
       contactSearchName: user.searchName,
-      lastMessage: ''
+      lastMessage: '',
+      unreadMessages: 0
     };
 
     await Promise.all([

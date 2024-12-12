@@ -21,6 +21,7 @@ export namespace Models {
     contactId: string;
     lastMessage: string;
     startedBy: string;
+    unreadMessages: number;
     contact: {
       name: string;
       profilePicture: string | null

@@ -15,6 +15,7 @@ interface WebSocketContextData {
   onlineUsers: string[];
   subscribeToMessages: (callback: MessageHandler) => void
   handleEmitMessage: (props: EmitMessageProps) => void
+  handleEmitViewChat: (props: EmitViewChatProps) => void
   resetWebSocketContext: () => void;
 }
 
@@ -36,6 +37,7 @@ export interface ReceivedMessageEvent {
   eventType: EventType.RECEIVED_MESSAGE
   message: Models.Message
   contactId: string;
+  chatId: string;
 }
 
 type EventData = OnlineUsersEvent | ReceivedMessageEvent;
@@ -48,6 +50,10 @@ interface EmitMessageProps {
   contactId: string
 }
 
+interface EmitViewChatProps {
+  chatId: string;
+}
+
 interface SendMessageEvent {
   action: 'sendMessage',
   data: {
@@ -57,14 +63,19 @@ interface SendMessageEvent {
   }
 }
 
+interface ViewChatEvent {
+  action: 'viewChat',
+  data: {
+    chatId: string;
+  }
+}
+
 const context = createContext<WebSocketContextData>({} as WebSocketContextData);
 
 const url = import.meta.env.VITE_WEBSOCKET_API_URL;
 
 export const WebSocketProvider: React.FC<Props> = ({ children }) => {
   const [{ accessToken }] = useCookies(['accessToken']);
-
-  console.log({ accessToken });
 
   const location = useLocation();
 
@@ -76,8 +87,6 @@ export const WebSocketProvider: React.FC<Props> = ({ children }) => {
 
   const addSocketHandlers = () => {
     if (!socketRef.current) return;
-
-    console.log('Adding socket handlers');
 
     socketRef.current.onmessage = (event) => {
       const data = JSON.parse(event.data) as EventData;
@@ -101,8 +110,6 @@ export const WebSocketProvider: React.FC<Props> = ({ children }) => {
   const handleEmitMessage = useCallback(({ message, chatId, contactId }: EmitMessageProps) => {
     if (!socketRef.current) return;
 
-    console.log('Emiting new message', message);
-
     const event: SendMessageEvent = {
       action: 'sendMessage',
       data: {
@@ -116,7 +123,20 @@ export const WebSocketProvider: React.FC<Props> = ({ children }) => {
     };
 
     socketRef.current.send(JSON.stringify(event));
-  }, [socketRef.current]);
+  }, []);
+
+  const handleEmitViewChat = useCallback(({ chatId }: EmitViewChatProps) => {
+    if (!socketRef.current) return;
+
+    const event: ViewChatEvent = {
+      action: 'viewChat',
+      data: {
+        chatId,
+      },
+    };
+
+    socketRef.current.send(JSON.stringify(event));
+  }, []);
 
   useEffect(() => {
     if (socketRef.current || !accessToken) return;
@@ -130,8 +150,6 @@ export const WebSocketProvider: React.FC<Props> = ({ children }) => {
     if (!isAllowed) return;
 
     const ws = new WebSocket(`${url}?token=${encodeURI(accessToken)}`);
-
-    console.log('Creating the Socket');
 
     socketRef.current = ws;
 
@@ -150,12 +168,14 @@ export const WebSocketProvider: React.FC<Props> = ({ children }) => {
       onlineUsers,
       subscribeToMessages,
       handleEmitMessage,
+      handleEmitViewChat,
       resetWebSocketContext,
     }),
     [
       onlineUsers,
       subscribeToMessages,
       handleEmitMessage,
+      handleEmitViewChat,
       resetWebSocketContext,
     ]
   );

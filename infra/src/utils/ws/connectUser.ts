@@ -1,3 +1,4 @@
+import { DataType } from '../../@types/enums';
 import { type Models } from '../../@types/models';
 import { createDynamoItem } from '../dynamo/createItem';
 
@@ -13,6 +14,7 @@ export const connectUser = async ({ userId, connectionId }: Props) => {
     pk: 'connection',
     sk: `connection#${connectionId}`,
     id: connectionId,
+    dataType: DataType.CONNECTION,
     createdAt: now,
     updatedAt: now,
     userId
