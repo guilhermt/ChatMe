@@ -7,6 +7,7 @@ import { getLastSeenLabel } from '@/utils/getLastSeenLabel';
 import { getFormattedHour } from '@/utils/getFormattedHour';
 import { useMessages } from '@/contexts/Messages';
 import { Models } from '@/@types/models';
+import { useWebSocket } from '@/contexts/WebSocket';
 
 interface NewMessageForm {
   text: string
@@ -17,9 +18,13 @@ export const Main = () => {
 
   const { messages, handleSendMessage, handlePaginate } = useMessages();
 
+  const { handleEmitTypingChat } = useWebSocket();
+
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const observer = useRef<IntersectionObserver>();
+
+  const typingTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const lastItemRef = useCallback(
     (node: HTMLDivElement) => {
@@ -40,6 +45,28 @@ export const Main = () => {
 
   const [initialScroll, setInitialScroll] = useState(true);
 
+  const handleTyping = () => {
+    if (typingTimeout.current) {
+      clearTimeout(typingTimeout.current);
+    } else {
+      handleEmitTypingChat({
+        chatId: activeChat?.id!,
+        contactId: activeChat?.contactId!,
+        isTyping: true,
+      });
+    }
+
+    typingTimeout.current = setTimeout(() => {
+      typingTimeout.current = null;
+
+      handleEmitTypingChat({
+        chatId: activeChat?.id!,
+        contactId: activeChat?.contactId!,
+        isTyping: false,
+      });
+    }, 2500);
+  };
+
   const form = useForm<NewMessageForm>({
     initialValues: {
       text: '',
@@ -53,6 +80,12 @@ export const Main = () => {
 
   const handleSubmitMessage = (data: NewMessageForm) => {
     handleSendMessage(data.text);
+
+    handleEmitTypingChat({
+      chatId: activeChat?.id!,
+      contactId: activeChat?.contactId!,
+      isTyping: false,
+    });
 
     form.reset();
   };
@@ -99,6 +132,14 @@ export const Main = () => {
     </Center>
   );
 
+  const getUserLabel = () => {
+    if (activeChat?.isTyping) return 'digitando...';
+
+    if (isOnline) return 'online';
+
+    return getLastSeenLabel(lastSeen!);
+  };
+
   useEffect(() => {
     if (!messages.data.length) return;
 
@@ -118,6 +159,8 @@ export const Main = () => {
 
   useEffect(() => {
     setInitialScroll(true);
+
+    form.reset();
   }, [activeChat?.id]);
 
   if (!activeChat) return renderNoChatMessage();
@@ -138,7 +181,7 @@ export const Main = () => {
           <Stack gap={6} w="100%">
             <Text fz={18} fw={500} lh={1}>{name}</Text>
 
-            <Text fz={16} fw={400} lh={1} c="dark.3">{isOnline ? 'online' : getLastSeenLabel(lastSeen!)}</Text>
+            <Text fz={16} fw={400} lh={1} c="dark.3">{getUserLabel()}</Text>
           </Stack>
         </Flex>
 
@@ -161,7 +204,7 @@ export const Main = () => {
 
         <form onSubmit={form.onSubmit(handleSubmitMessage)}>
           <Flex gap="md">
-            <TextInput w="100%" size="md" autoComplete="off" {...form.getInputProps('text')} />
+            <TextInput w="100%" size="md" autoComplete="off" {...form.getInputProps('text')} onChangeCapture={handleTyping} />
 
             <Button size="md" pl="lg" pr="lg" type="submit" disabled={!form.isValid()}><IconSend size={32} /></Button>
           </Flex>

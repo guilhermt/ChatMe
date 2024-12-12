@@ -13,7 +13,7 @@ import { Models } from '@/@types/models';
 import { FetchContextDataProps, PaginatableContextData } from '@/@types/common';
 import { services } from '@/services';
 import { showErrorNotification } from '@/utils/showErrorNotification';
-import { useWebSocket } from '../WebSocket';
+import { ReceivedTypingChatEvent, useWebSocket } from '../WebSocket';
 
 interface ChatsContextData {
   chats: Chats;
@@ -48,7 +48,7 @@ export const PAGE_SIZE = 20;
 const context = createContext<ChatsContextData>({} as ChatsContextData);
 
 export const ChatsProvider: React.FC<Props> = ({ children }) => {
-  const { onlineUsers, handleEmitViewChat } = useWebSocket();
+  const { onlineUsers, handleEmitViewChat, subscribeToTypingChat } = useWebSocket();
 
   const location = useLocation();
 
@@ -167,6 +167,34 @@ export const ChatsProvider: React.FC<Props> = ({ children }) => {
       };
     });
   }, [activeChat]);
+
+  const handleTypingChatReceived = useCallback((data: ReceivedTypingChatEvent) => {
+    const { chatId, isTyping } = data;
+
+    console.log('Received');
+
+    const updateChat = (chat: Models.Chat) => {
+      if (chat.id !== chatId) return chat;
+
+      return {
+        ...chat,
+        isTyping,
+      };
+    };
+
+    setChats(p => ({
+      ...p,
+      data: p.data.map(updateChat),
+    }));
+
+    if (activeChat?.id !== chatId) return;
+
+    setActiveChat(p => updateChat(p!));
+  }, [activeChat]);
+
+  useEffect(() => {
+    subscribeToTypingChat(handleTypingChatReceived);
+  }, [handleTypingChatReceived]);
 
   useEffect(() => {
     if (!activeChat) return;

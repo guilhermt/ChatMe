@@ -1,4 +1,4 @@
-import { Avatar, Badge, Button, Card, Center, Flex, Image, Indicator, Loader, ScrollAreaAutosize, Skeleton, Stack, Text, TextInput, UnstyledButton } from '@mantine/core';
+import { Avatar, Badge, Box, Button, Card, Center, Flex, Image, Indicator, Loader, ScrollAreaAutosize, Skeleton, Stack, Text, TextInput, UnstyledButton } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 import { IconLogout, IconPlus, IconSearch } from '@tabler/icons-react';
 import { modals } from '@mantine/modals';
@@ -81,6 +81,29 @@ export const NavBar = () => {
 
     const newMessages = chat.unreadMessages;
 
+    const getLabel = () => {
+      if (chat.isTyping) {
+        return (
+          <Text fz={13} fw={700} c="var(--mantine-primary-color-6)">
+            digitando...
+          </Text>);
+      }
+
+      return (
+        <Text
+          fz={13}
+          fw={400}
+          c="dark.3"
+          style={{
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {chat.lastMessage || 'Comece a conversar'}
+        </Text>);
+    };
+
     return (
       <UnstyledButton
         onClick={() => setActiveChat(chat)}
@@ -111,7 +134,9 @@ export const NavBar = () => {
               </Flex>
 
               <Flex justify="space-between" align="center">
-                <Text fz={13} fw={400} c="dark.3">{chat.lastMessage || 'Comece a conversar'}</Text>
+                <Box maw={180}>
+                  {getLabel()}
+                </Box>
 
                 {!!newMessages && <Badge circle>{newMessages}</Badge>}
               </Flex>

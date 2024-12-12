@@ -28,6 +28,7 @@ export namespace Models {
       lastSeen: number;
       isOnline?: boolean
     }
+    isTyping?: boolean
   }
 
   interface Message extends BaseModel {
