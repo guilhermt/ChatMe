@@ -12,6 +12,8 @@ import {
 } from 'aws-cdk-lib/aws-cloudfront';
 import path from 'path';
 import { getEnvName } from '../utils/getEnvName';
+import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { configEnv } from '../config';
 
 export class WebApp extends Construct {
   readonly webAppUrl: string;
@@ -33,6 +35,8 @@ export class WebApp extends Construct {
       'OriginAccessIdentity'
     );
 
+    const certificate = Certificate.fromCertificateArn(this, 'Certificate', configEnv.certificateArn);
+
     const cloudFrontConfig: DistributionProps = {
       defaultRootObject: 'index.html',
       defaultBehavior: {
@@ -49,7 +53,9 @@ export class WebApp extends Construct {
           responseHttpStatus: 200,
           responsePagePath: '/index.html'
         }
-      ]
+      ],
+      domainNames: [configEnv.domainNames.webApp],
+      certificate
     };
 
     webBucket.grantRead(originAccessIdentity);

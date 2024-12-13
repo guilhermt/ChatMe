@@ -35,8 +35,6 @@ export const UserProfileModal = () => {
     try {
       await handleUpdateUserProfile(data);
 
-      console.log(data);
-
       modals.closeAll();
     } catch (e) {
       console.log(e);

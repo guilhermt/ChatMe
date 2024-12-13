@@ -5,6 +5,7 @@ import {
   type AttributeValue
 } from '@aws-sdk/client-dynamodb';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
+import { configEnv } from '../../config';
 
 interface Keys {
   pk: string;
@@ -28,7 +29,7 @@ interface Props {
   gsi?: boolean
 }
 
-const TableName = process.env.TABLE_NAME ?? '';
+const TableName = configEnv.tableName;
 
 export const getPaginatedDynamoItems = async <T>({
   keys,

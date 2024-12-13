@@ -1,4 +1,4 @@
-import { WebSocketApi, WebSocketStage } from 'aws-cdk-lib/aws-apigatewayv2';
+import { DomainName, WebSocketApi, WebSocketStage } from 'aws-cdk-lib/aws-apigatewayv2';
 import { type Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Construct } from 'constructs';
 import { WebSocketLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
@@ -12,6 +12,8 @@ import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Queue } from 'aws-cdk-lib/aws-sqs';
 import { Duration } from 'aws-cdk-lib';
 import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
+import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { configEnv } from '../config';
 
 interface WebSocketAPIProps {
   dynamoTable: Table;
@@ -28,15 +30,13 @@ export class WebSocketAPI extends Construct {
 
     const { dynamoTable, userPoolClientId, userPool, bucket } = props;
 
-    const ENVIRONMENT = process.env.ENVIRONMENT ?? '';
-
     const queue = new Queue(this, 'ChatMeQueue', {
       queueName: getEnvName('ChatMe-Queue'),
       retentionPeriod: Duration.minutes(1)
     });
 
     const environment = {
-      ENVIRONMENT,
+      ENVIRONMENT: configEnv.env,
       TABLE_NAME: dynamoTable.tableName,
       BUCKET_NAME: bucket.bucketName,
       USERPOOL_CLIENT_ID: userPoolClientId,
@@ -112,10 +112,18 @@ export class WebSocketAPI extends Construct {
       integration: new WebSocketLambdaIntegration('TypingChatRoute', typingChatHandler)
     });
 
+    const certificate = Certificate.fromCertificateArn(this, 'Certificate', configEnv.certificateArn);
+
     new WebSocketStage(this, 'WebSocketApiStage', {
       webSocketApi,
-      stageName: ENVIRONMENT,
-      autoDeploy: true
+      stageName: configEnv.env,
+      autoDeploy: true,
+      domainMapping: {
+        domainName: new DomainName(this, 'ApiDomainName', {
+          domainName: configEnv.domainNames.wsApi,
+          certificate
+        })
+      }
     });
 
     sqsHandler.addEventSource(

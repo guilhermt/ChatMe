@@ -1,4 +1,4 @@
-import { CorsHttpMethod, HttpApi, type WebSocketApi } from 'aws-cdk-lib/aws-apigatewayv2';
+import { CorsHttpMethod, HttpApi, type WebSocketApi, DomainName } from 'aws-cdk-lib/aws-apigatewayv2';
 import { type Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Construct } from 'constructs';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
@@ -10,6 +10,8 @@ import { getEnvName } from '../utils/getEnvName';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { configEnv } from '../config';
 
 interface RestAPIProps {
   dynamoTable: Table;
@@ -37,22 +39,30 @@ export class RestAPI extends Construct {
 
     const { dynamoTable, userPoolClientId, userPool, bucket, wsAPI } = props;
 
+    const certificate = Certificate.fromCertificateArn(this, 'Certificate', configEnv.certificateArn);
+
     const httpApi = new HttpApi(this, 'ApiGateway', {
       apiName: getEnvName('ChatMe REST API'),
       corsPreflight: {
         allowMethods: [CorsHttpMethod.ANY],
-        allowOrigins: ['*'],
+        allowOrigins: [`https://${configEnv.domainNames.webApp}`],
         allowHeaders: ['Authorization', 'Content-Type']
+      },
+      defaultDomainMapping: {
+        domainName: new DomainName(this, 'ApiDomainName', {
+          domainName: configEnv.domainNames.restApi,
+          certificate
+        })
       }
     });
 
     const environment = {
-      ENVIRONMENT: process.env.ENVIRONMENT ?? '',
+      ENVIRONMENT: configEnv.env,
       TABLE_NAME: dynamoTable.tableName,
       BUCKET_NAME: bucket.bucketName,
       USERPOOL_CLIENT_ID: userPoolClientId,
       USERPOOL_ID: userPool.userPoolId,
-      SLACK_BOT_TOKEN: process.env.SLACK_BOT_TOKEN ?? ''
+      SLACK_BOT_TOKEN: configEnv.slackBotToken
     };
 
     const handlersPath = path.join(__dirname, '../../src/restApi/handlers');

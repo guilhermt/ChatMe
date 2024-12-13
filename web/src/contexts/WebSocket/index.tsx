@@ -212,8 +212,6 @@ export const WebSocketProvider: React.FC<Props> = ({ children }) => {
     socketRef.current.send(JSON.stringify(event));
   }, []);
 
-  console.log(socketRef.current?.readyState);
-
   useEffect(() => {
     if (socketRef.current || !accessToken) return;
 

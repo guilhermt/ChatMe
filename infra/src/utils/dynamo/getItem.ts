@@ -1,13 +1,14 @@
 import { client } from '../../clients/dynamo';
 import { type QueryCommandInput, QueryCommand } from '@aws-sdk/client-dynamodb';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
+import { configEnv } from '../../config';
 
 interface Item {
   pk: string;
   sk?: string;
 }
 
-const TableName = process.env.TABLE_NAME ?? '';
+const TableName = configEnv.tableName;
 
 export const getDynamoItem = async <T>(item: Item, skBeginsWith = false) => {
   const generateKeyCondition = (key: string) => {

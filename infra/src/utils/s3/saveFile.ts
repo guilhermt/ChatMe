@@ -3,8 +3,9 @@ import {
   PutObjectCommand,
   type PutObjectCommandInput
 } from '@aws-sdk/client-s3';
+import { configEnv } from '../../config';
 
-const Bucket = process.env.BUCKET_NAME;
+const Bucket = configEnv.bucketName;
 
 export const uploadFileToS3 = async (file: any, key: string, type: string) => {
   if (!file || !Bucket) return null;

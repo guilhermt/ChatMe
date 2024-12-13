@@ -5,6 +5,7 @@ import {
   type AttributeValue
 } from '@aws-sdk/client-dynamodb';
 import { marshall, unmarshall } from '@aws-sdk/util-dynamodb';
+import { configEnv } from '../../config';
 
 interface Keys {
   pk: string;
@@ -25,7 +26,7 @@ interface Props {
   index?: string;
 }
 
-const TableName = process.env.TABLE_NAME ?? '';
+const TableName = configEnv.tableName;
 
 export const getAllDynamoItems = async <T>({ keys, filter, index }: Props) => {
   const generateKeyCondition = (key: string) => {

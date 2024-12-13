@@ -5,13 +5,14 @@ import {
   type AdminSetUserPasswordCommandInput,
   AdminSetUserPasswordCommand
 } from '@aws-sdk/client-cognito-identity-provider';
+import { configEnv } from '../../config';
 
 interface Props {
   email: string;
   password: string;
 }
 
-const UserPoolId = process.env.USERPOOL_ID ?? '';
+const UserPoolId = configEnv.userPoolId;
 
 export const createCognitoAccount = async ({
   email,

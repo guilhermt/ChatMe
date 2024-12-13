@@ -4,6 +4,7 @@ import {
   UpdateItemCommand
 } from '@aws-sdk/client-dynamodb';
 import { marshall } from '@aws-sdk/util-dynamodb';
+import { configEnv } from '../../config';
 
 interface Item {
   pk: string;
@@ -16,7 +17,7 @@ interface Update {
   attributeValues: Record<string, any>;
 }
 
-const TableName = process.env.TABLE_NAME ?? '';
+const TableName = configEnv.tableName;
 
 export const updateDynamoItem = async (item: Item, update: Update) => {
   const params: UpdateItemCommandInput = {

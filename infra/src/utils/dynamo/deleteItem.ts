@@ -4,13 +4,14 @@ import {
   DeleteItemCommand
 } from '@aws-sdk/client-dynamodb';
 import { marshall } from '@aws-sdk/util-dynamodb';
+import { configEnv } from '../../config';
 
 interface Item {
   pk: string;
   sk: string;
 }
 
-const TableName = process.env.TABLE_NAME ?? '';
+const TableName = configEnv.tableName;
 
 export const deleteDynamoItem = async (item: Item) => {
   const params: DeleteItemCommandInput = {

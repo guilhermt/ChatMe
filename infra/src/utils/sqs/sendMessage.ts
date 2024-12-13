@@ -1,7 +1,6 @@
 import { SendMessageCommand } from '@aws-sdk/client-sqs';
 import { client } from '../../clients/sqs';
-
-const QUEUE_URL = process.env.QUEUE_URL!;
+import { configEnv } from '../../config';
 
 export interface SQSSourceEvent {
   type: 'connect' | 'disconnect',
@@ -12,7 +11,7 @@ export interface SQSSourceEvent {
 export const sendSQSMessage = async (sourceEvent: SQSSourceEvent) => {
   try {
     const params = {
-      QueueUrl: QUEUE_URL,
+      QueueUrl: configEnv.queueUrl,
       MessageBody: JSON.stringify({
         action: 'sendOnlineUsers',
         sourceEvent

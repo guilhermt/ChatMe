@@ -1,4 +1,6 @@
-const env = process.env.ENVIRONMENT as 'dev' | 'prod';
+import { configEnv } from '../../config';
+
+const env = configEnv.env as 'dev' | 'prod';
 
 const channels = {
   dev: 'C07386RL8NN',
