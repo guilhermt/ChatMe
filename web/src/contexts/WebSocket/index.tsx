@@ -15,6 +15,7 @@ interface WebSocketContextData {
   onlineUsers: string[];
   subscribeToMessages: (callback: MessageHandler) => void;
   subscribeToTypingChat: (callback: TypingChatHandler) => void;
+  subscribeToNewChat: (callback: NewChatHandler) => void;
   handleEmitMessage: (props: EmitMessageProps) => void;
   handleEmitViewChat: (props: EmitViewChatProps) => void;
   handleEmitTypingChat: (props: EmitTypingChatProps) => void;
@@ -28,7 +29,8 @@ interface Props {
 enum EventType {
   ONLINE_USERS = 'online_users',
   RECEIVED_MESSAGE = 'received_message',
-  TYPING_CHAT = 'typing_chat'
+  TYPING_CHAT = 'typing_chat',
+  RECEIVED_NEW_CHAT = 'received_new_chat'
 }
 
 interface OnlineUsersEvent {
@@ -49,11 +51,22 @@ export interface ReceivedTypingChatEvent {
   isTyping: boolean
 }
 
-type EventData = OnlineUsersEvent | ReceivedMessageEvent | ReceivedTypingChatEvent;
+export interface ReceivedNewChatEvent {
+  eventType: EventType.RECEIVED_NEW_CHAT
+  chat: Models.Chat
+}
+
+type EventData =
+  OnlineUsersEvent |
+  ReceivedMessageEvent |
+  ReceivedTypingChatEvent |
+  ReceivedNewChatEvent;
 
 type MessageHandler = (data: ReceivedMessageEvent) => void;
 
 type TypingChatHandler = (data: ReceivedTypingChatEvent) => void;
+
+type NewChatHandler = (data: ReceivedNewChatEvent) => void;
 
 interface EmitMessageProps {
   message: string;
@@ -113,6 +126,8 @@ export const WebSocketProvider: React.FC<Props> = ({ children }) => {
 
   const typingChatHandler = useRef<TypingChatHandler | null>(null);
 
+  const newChatHandler = useRef<NewChatHandler | null>(null);
+
   const addSocketHandlers = () => {
     if (!socketRef.current) return;
 
@@ -130,6 +145,10 @@ export const WebSocketProvider: React.FC<Props> = ({ children }) => {
       if (data.eventType === EventType.TYPING_CHAT) {
         typingChatHandler.current?.(data);
       }
+
+      if (data.eventType === EventType.RECEIVED_NEW_CHAT) {
+        newChatHandler.current?.(data);
+      }
     };
   };
 
@@ -141,6 +160,12 @@ export const WebSocketProvider: React.FC<Props> = ({ children }) => {
 
   const subscribeToTypingChat = useCallback((callback: TypingChatHandler) => {
     typingChatHandler.current = callback;
+
+    addSocketHandlers();
+  }, []);
+
+  const subscribeToNewChat = useCallback((callback: NewChatHandler) => {
+    newChatHandler.current = callback;
 
     addSocketHandlers();
   }, []);
@@ -219,6 +244,7 @@ export const WebSocketProvider: React.FC<Props> = ({ children }) => {
       onlineUsers,
       subscribeToMessages,
       subscribeToTypingChat,
+      subscribeToNewChat,
       handleEmitMessage,
       handleEmitViewChat,
       handleEmitTypingChat,
@@ -228,6 +254,7 @@ export const WebSocketProvider: React.FC<Props> = ({ children }) => {
       onlineUsers,
       subscribeToMessages,
       subscribeToTypingChat,
+      subscribeToNewChat,
       handleEmitMessage,
       handleEmitViewChat,
       handleEmitTypingChat,

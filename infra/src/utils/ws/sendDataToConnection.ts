@@ -7,8 +7,6 @@ export const sendDataToConnection = async (connId: string, data: Record<string, 
     Data: JSON.stringify(data)
   });
 
-  await new Promise(resolve => setTimeout(resolve, 500));
-
   try {
     await client.send(command);
   } catch (e) {

@@ -7,6 +7,12 @@ import { getDynamoItem } from '../../../utils/dynamo/getItem';
 import { v4 } from 'uuid';
 import { getAllDynamoItems } from '../../../utils/dynamo/getAllItems';
 import { DataType } from '../../../@types/enums';
+import { sendDataToConnection } from '../../../utils/ws/sendDataToConnection';
+
+interface ReceivedNewChatEvent {
+  eventType: 'received_new_chat';
+  chat: Models.ExtendedChat
+}
 
 export const handler = async (event: APIGatewayEvent) => {
   try {
@@ -88,11 +94,6 @@ export const handler = async (event: APIGatewayEvent) => {
       unreadMessages: 0
     };
 
-    await Promise.all([
-      createDynamoItem(senderChat),
-      createDynamoItem(receiverChat)
-    ]);
-
     const extendedChat: Models.ExtendedChat = {
       ...senderChat,
       contact: {
@@ -101,6 +102,36 @@ export const handler = async (event: APIGatewayEvent) => {
         lastSeen
       }
     };
+
+    const sendChatToContact = async () => {
+      const allConnections = await getAllDynamoItems<Models.Connection>({ keys: { pk: 'connection' } });
+
+      const receiverConnection = allConnections.find(conn => conn.userId === contactId);
+
+      if (!receiverConnection) return;
+
+      const extendedReceiverChat: Models.ExtendedChat = {
+        ...receiverChat,
+        contact: {
+          name: user.name,
+          profilePicture: user.profilePicture,
+          lastSeen: user.lastSeen
+        }
+      };
+
+      const receivedNewChatEvent: ReceivedNewChatEvent = {
+        eventType: 'received_new_chat',
+        chat: extendedReceiverChat
+      };
+
+      await sendDataToConnection(receiverConnection.id, receivedNewChatEvent);
+    };
+
+    await Promise.all([
+      createDynamoItem(senderChat),
+      createDynamoItem(receiverChat),
+      sendChatToContact()
+    ]);
 
     return httpResponse({ chat: extendedChat });
   } catch (e) {

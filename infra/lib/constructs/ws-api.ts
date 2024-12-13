@@ -21,7 +21,7 @@ interface WebSocketAPIProps {
 }
 
 export class WebSocketAPI extends Construct {
-  readonly webSocketApiUrl: string;
+  readonly wsAPI: WebSocketApi;
 
   constructor(scope: Construct, id: string, props: WebSocketAPIProps) {
     super(scope, id);
@@ -143,6 +143,6 @@ export class WebSocketAPI extends Construct {
     webSocketApi.grantManageConnections(sendMessageHandler);
     webSocketApi.grantManageConnections(typingChatHandler);
 
-    this.webSocketApiUrl = webSocketApi.apiEndpoint;
+    this.wsAPI = webSocketApi;
   }
 }

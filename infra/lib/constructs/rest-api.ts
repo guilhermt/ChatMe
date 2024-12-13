@@ -1,4 +1,4 @@
-import { CorsHttpMethod, HttpApi } from 'aws-cdk-lib/aws-apigatewayv2';
+import { CorsHttpMethod, HttpApi, type WebSocketApi } from 'aws-cdk-lib/aws-apigatewayv2';
 import { type Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Construct } from 'constructs';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
@@ -16,6 +16,7 @@ interface RestAPIProps {
   userPoolClientId: string;
   userPool: UserPool;
   bucket: Bucket;
+  wsAPI: WebSocketApi
 }
 
 interface RouteProps {
@@ -25,6 +26,7 @@ interface RouteProps {
   routeMethod: HttpMethod;
   bucketPermission?: boolean;
   cognitoPermission?: boolean;
+  wsEventsPermission?: boolean
 }
 
 export class RestAPI extends Construct {
@@ -33,7 +35,7 @@ export class RestAPI extends Construct {
   constructor(scope: Construct, id: string, props: RestAPIProps) {
     super(scope, id);
 
-    const { dynamoTable, userPoolClientId, userPool, bucket } = props;
+    const { dynamoTable, userPoolClientId, userPool, bucket, wsAPI } = props;
 
     const httpApi = new HttpApi(this, 'ApiGateway', {
       apiName: getEnvName('ChatMe REST API'),
@@ -85,7 +87,8 @@ export class RestAPI extends Construct {
         lambdaName: 'StartChat',
         lambdaEntry: 'chats/startChat.ts',
         routePath: '/chats',
-        routeMethod: HttpMethod.POST
+        routeMethod: HttpMethod.POST,
+        wsEventsPermission: true
       },
       {
         lambdaName: 'ListMessages',
@@ -109,7 +112,8 @@ export class RestAPI extends Construct {
         routeMethod,
         routePath,
         bucketPermission,
-        cognitoPermission
+        cognitoPermission,
+        wsEventsPermission
       } = props;
 
       const entry = path.join(handlersPath, lambdaEntry);
@@ -144,6 +148,8 @@ export class RestAPI extends Construct {
           'cognito-idp:AdminSetUserPassword'
         );
       }
+
+      if (wsEventsPermission) wsAPI.grantManageConnections(lambda);
 
       const integration = new HttpLambdaIntegration(integrationId, lambda);
 
