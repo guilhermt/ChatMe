@@ -145,7 +145,7 @@ export class RestAPI extends Construct {
         environment,
         memorySize: 2048,
         bundling: {
-          // minify: true
+          minify: true
         }
       });
 

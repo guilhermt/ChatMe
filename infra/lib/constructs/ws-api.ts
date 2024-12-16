@@ -6,7 +6,7 @@ import path from 'path';
 import { type UserPool } from 'aws-cdk-lib/aws-cognito';
 import { type Bucket } from 'aws-cdk-lib/aws-s3';
 import { getEnvName } from '../utils/getEnvName';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import { NodejsFunction, type NodejsFunctionProps } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Queue } from 'aws-cdk-lib/aws-sqs';
@@ -46,12 +46,15 @@ export class WebSocketAPI extends Construct {
 
     const handlersPath = path.join(__dirname, '../../src/wsApi/handlers');
 
-    const baseLambdaProps = {
+    const baseLambdaProps: NodejsFunctionProps = {
       handler: 'handler',
       runtime: Runtime.NODEJS_20_X,
       logRetention: RetentionDays.TWO_WEEKS,
       environment,
-      memorySize: 2048
+      memorySize: 2048,
+      bundling: {
+        minify: true
+      }
     };
 
     const connectHandler = new NodejsFunction(this, 'ChatMe-Connect-WSLambda', {
