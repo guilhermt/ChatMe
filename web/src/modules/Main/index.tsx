@@ -1,5 +1,5 @@
-import { Avatar, Button, Card, Center, Container, Divider, Flex, Image, Indicator, Loader, LoadingOverlay, ScrollAreaAutosize, Stack, Text, TextInput, ThemeIcon } from '@mantine/core';
-import { IconSend } from '@tabler/icons-react';
+import { ActionIcon, Avatar, Button, Card, Center, Container, Divider, Flex, Image, Indicator, Loader, LoadingOverlay, ScrollAreaAutosize, Stack, Text, TextInput, ThemeIcon } from '@mantine/core';
+import { IconArrowLeft, IconSend } from '@tabler/icons-react';
 import { useForm } from '@mantine/form';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useChats } from '@/contexts/Chats';
@@ -8,13 +8,16 @@ import { getFormattedHour } from '@/utils/getFormattedHour';
 import { useMessages } from '@/contexts/Messages';
 import { Models } from '@/@types/models';
 import { useWebSocket } from '@/contexts/WebSocket';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 interface NewMessageForm {
   text: string
 }
 
 export const Main = () => {
-  const { activeChat } = useChats();
+  const { activeChat, setActiveChat } = useChats();
+
+  const isMobile = useIsMobile();
 
   const { messages, handleSendMessage, handlePaginate } = useMessages();
 
@@ -117,7 +120,7 @@ export const Main = () => {
       <Stack align={isSentByUser ? 'end' : 'start'} gap={0} key={message.createdAt} ref={refValue}>
         <Card w="fit-content" p="8px 10px" bg={isSentByUser ? 'grape.1' : ''} radius="md" maw="65%" withBorder pos="relative">
 
-          <Text lh={1.2}>{data} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</Text>
+          <Text lh={1.2} style={{ wordBreak: 'break-word' }}>{data} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</Text>
 
           <Text fz={10} fw={400} c="dark.4" pos="absolute" right={8} bottom={4}>{getFormattedHour(createdAt)}</Text>
         </Card>
@@ -201,7 +204,7 @@ export const Main = () => {
     form.reset();
   }, [activeChat?.id]);
 
-  if (!activeChat) return renderNoChatMessage();
+  if (!activeChat && !isMobile) return renderNoChatMessage();
 
   const isReloading = messages?.isLoading === 'search';
 
@@ -209,21 +212,34 @@ export const Main = () => {
 
   return (
     <Container className="module-container">
-      <Stack w="100%" h="100%" pos="relative">
+      <Stack w="100%" h="100%" pos="relative" gap={0}>
+        <Flex align="center">
+          {isMobile && (
+            <ActionIcon
+              variant="transparent"
+              size="xl"
+              color="dark.6"
+              styles={{ root: { paddingRight: 8 } }}
+              onClick={() => setActiveChat(null)}
+            >
+              <IconArrowLeft />
+            </ActionIcon>
+          )}
 
-        <Flex gap="xs" align="center">
-          <Indicator color="green" position="bottom-end" size={15} offset={4} withBorder disabled={!isOnline}>
-            <Avatar src={profilePicture} size={50} />
-          </Indicator>
+          <Flex gap="xs" align="center">
+            <Indicator color="green" position="bottom-end" size={15} offset={5} withBorder disabled={!isOnline}>
+              <Avatar src={profilePicture} size={50} />
+            </Indicator>
 
-          <Stack gap={6} w="100%">
-            <Text fz={18} fw={500} lh={1}>{name}</Text>
+            <Stack gap={6} w="100%">
+              <Text fz={18} fw={500} lh={1}>{name}</Text>
 
-            <Text fz={16} fw={400} lh={1} c="dark.3">{getUserLabel()}</Text>
-          </Stack>
+              <Text fz={16} fw={400} lh={1} c="dark.3">{getUserLabel()}</Text>
+            </Stack>
+          </Flex>
         </Flex>
 
-        <Divider />
+        <Divider mt={isMobile ? 8 : 16} />
 
         <LoadingOverlay
           visible={isReloading}
@@ -231,8 +247,8 @@ export const Main = () => {
           loaderProps={{ type: 'bars' }}
         />
 
-        <ScrollAreaAutosize h="100%" viewportRef={scrollRef}>
-          <Stack gap="xs" p="0 200px">
+        <ScrollAreaAutosize h="100%" viewportRef={scrollRef} scrollbarSize={0}>
+          <Stack gap={isMobile ? 4 : 'xs'} p={isMobile ? 0 : '0 200px'}>
 
             {isPaginating && renderLoader()}
 
@@ -241,10 +257,26 @@ export const Main = () => {
         </ScrollAreaAutosize>
 
         <form onSubmit={form.onSubmit(handleSubmitMessage)}>
-          <Flex gap="md">
-            <TextInput w="100%" size="md" autoComplete="off" {...form.getInputProps('text')} onChangeCapture={handleTyping} />
+          <Flex gap="xs" mt={isMobile ? 4 : 8} ml={4} mr={4}>
+            <TextInput
+              w="100%"
+              size="lg"
+              autoComplete="off"
+              {...form.getInputProps('text')}
+              onChangeCapture={handleTyping}
+              radius="xl"
+            />
 
-            <Button size="md" pl="lg" pr="lg" type="submit" disabled={!form.isValid()}><IconSend size={32} /></Button>
+            <Button
+              h={50}
+              miw={50}
+              p={0}
+              type="submit"
+              radius="xl"
+              disabled={!form.isValid()}
+            >
+              <IconSend size={26} />
+            </Button>
           </Flex>
         </form>
 

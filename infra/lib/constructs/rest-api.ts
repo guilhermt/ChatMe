@@ -41,11 +41,13 @@ export class RestAPI extends Construct {
 
     const certificate = Certificate.fromCertificateArn(this, 'Certificate', configEnv.certificateArn);
 
+    const allowOrigins = configEnv.isProd ? [`https://${configEnv.domainNames.webApp}`] : ['*'];
+
     const httpApi = new HttpApi(this, 'ApiGateway', {
       apiName: getEnvName('ChatMe REST API'),
       corsPreflight: {
         allowMethods: [CorsHttpMethod.ANY],
-        allowOrigins: [`https://${configEnv.domainNames.webApp}`],
+        allowOrigins,
         allowHeaders: ['Authorization', 'Content-Type']
       },
       defaultDomainMapping: {

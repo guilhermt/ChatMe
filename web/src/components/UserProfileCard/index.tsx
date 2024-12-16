@@ -1,12 +1,16 @@
-import { Avatar, Card, Flex, Menu, MenuDropdown, MenuItem, MenuTarget, Skeleton, Stack, Text, ThemeIcon, UnstyledButton } from '@mantine/core';
-import { IconChevronRight, IconLogout, IconUserEdit } from '@tabler/icons-react';
+import { ActionIcon, Avatar, Card, Flex, Menu, MenuDropdown, MenuItem, MenuTarget, Skeleton, Stack, Text, ThemeIcon, UnstyledButton } from '@mantine/core';
+import { IconChevronRight, IconLogout, IconSettings, IconUserEdit } from '@tabler/icons-react';
 import { modals } from '@mantine/modals';
 import { useAuth } from '@/contexts/Authentication';
 import { useClearAllContexts } from '@/hooks/useClearContexts';
 import { UserProfileModal } from './UserProfileModal';
 import { useIsMobile } from '@/hooks/useIsMobile';
 
-export const UserProfileCard = () => {
+interface Props {
+  variant: 'card' | 'menu'
+}
+
+export const UserProfileButton = ({ variant }: Props) => {
   const { user, handleLogout } = useAuth();
 
   const isMobile = useIsMobile();
@@ -43,30 +47,40 @@ export const UserProfileCard = () => {
     </Card>
   );
 
-  if (user.isLoading) return renderUserPlaceholder();
+  const renderCardTarget = () => (
+    <UnstyledButton>
+      <Card p="xs" mih="fit-content" bg="transparent">
+        <Flex align="center" justify="space-between">
+          <Flex gap="xs" align="center">
+            <Avatar src={profilePicture} size={50} />
+
+            <Stack gap={4} w="100%">
+              <Text fz={16} fw={500} inline>{name}</Text>
+
+              <Text fz={13} fw={500} c="dark.3" inline>{email}</Text>
+            </Stack>
+          </Flex>
+
+          <ThemeIcon variant="transparent" color="dark.2">
+            <IconChevronRight size={14} stroke={1.5} />
+          </ThemeIcon>
+        </Flex>
+      </Card>
+    </UnstyledButton>
+  );
+
+  const renderMenuButtonTarget = () => (
+    <ActionIcon size={42} variant="default" radius="md">
+      <IconSettings size={26} />
+    </ActionIcon>
+  );
+
+  if (user.isLoading && variant === 'card') return renderUserPlaceholder();
 
   return (
-    <Menu position="top-end" offset={0} withArrow>
+    <Menu position={variant === 'card' ? 'top-end' : 'bottom-end'} offset={0} withArrow>
       <MenuTarget>
-        <UnstyledButton>
-          <Card p="xs" mih="fit-content">
-            <Flex align="center" justify="space-between">
-              <Flex gap="xs" align="center">
-                <Avatar src={profilePicture} size={50} />
-
-                <Stack gap={4} w="100%">
-                  <Text fz={16} fw={500} inline>{name}</Text>
-
-                  <Text fz={13} fw={500} c="dark.3" inline>{email}</Text>
-                </Stack>
-              </Flex>
-
-              <ThemeIcon variant="transparent" color="dark.2">
-                <IconChevronRight size={14} stroke={1.5} />
-              </ThemeIcon>
-            </Flex>
-          </Card>
-        </UnstyledButton>
+        {variant === 'card' ? renderCardTarget() : renderMenuButtonTarget()}
       </MenuTarget>
 
       <MenuDropdown p="12px 6px">

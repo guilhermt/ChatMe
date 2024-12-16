@@ -6,9 +6,12 @@ import { useUsers } from '@/contexts/Users';
 import { Models } from '@/@types/models';
 import { getLastSeenLabel } from '@/utils/getLastSeenLabel';
 import { useChats } from '@/contexts/Chats';
+import { useIsMobile } from '@/hooks/useIsMobile';
 
 export const NewChatModal = () => {
   const { users, search, setSearch, handlePaginate } = useUsers();
+
+  const isMobile = useIsMobile();
 
   const { handleStartChat } = useChats();
 
@@ -65,7 +68,16 @@ export const NewChatModal = () => {
       >
         <LoadingOverlay visible={isLoading} loaderProps={{ size: 'sm' }} overlayProps={{ blur: 2, opacity: 0.8 }} />
 
-        <Card p="xs" ref={refValue}>
+        <Card
+          p="xs"
+          ref={refValue}
+          onMouseEnter={(e) => {
+            if (!loading) e.currentTarget.style.backgroundColor = '#f0f0f0';
+          }}
+          onMouseLeave={(e) => {
+            if (!loading) e.currentTarget.style.backgroundColor = '#ffffff';
+          }}
+        >
           <Flex gap="xs" align="center">
             <Indicator color="green" position="bottom-end" size={15} offset={4} withBorder disabled={!isOnline}>
               <Avatar src={profilePicture} size={50} />
@@ -118,7 +130,7 @@ export const NewChatModal = () => {
       />
 
       <ScrollArea h={500}>
-        <SimpleGrid cols={3} pr="sm">
+        <SimpleGrid cols={isMobile ? 1 : 3} pr="sm" spacing={isMobile ? 'xs' : 'md'}>
           {isReloading ? placeholderCards : users.data.map(renderUserCard)}
         </SimpleGrid>
 
