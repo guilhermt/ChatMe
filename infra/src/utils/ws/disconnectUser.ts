@@ -23,7 +23,8 @@ export const disconnectUser = async ({ userId, connectionId }: Props) => {
 
   const userPropsToUpdate: Partial<Models.User> = {
     lastSeen: now,
-    updatedAt: now
+    updatedAt: now,
+    gsi: now
   };
 
   const userUpdate = createUpdateObject(userPropsToUpdate);

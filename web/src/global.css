@@ -13,33 +13,13 @@ html body[data-scroll-locked] {
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 100vh;
+  height: 100dvh;
   width: 100%;
   max-width: 1400px;
-  padding: 0 3rem;
-  padding-top: 1.5rem;
-  padding-bottom: 1rem;
-
-  @media (max-width: 1400px) {
-    padding: 0 3rem;
-    padding-top: 1rem;
-  }
+  padding: 1rem 3rem;
 
   @media (max-width: 768px) {
-    padding: 0.5rem 1rem;
-    padding-bottom: 1rem;
+    padding: 0.5rem 0.5rem;
+    padding-bottom: 0.5rem;
   }
-}
-
-::-webkit-scrollbar {
-  width: 0.8rem;
-}
-
-::-webkit-scrollbar-thumb {
-  position: fixed;
-  background: #bbbbbb;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #999999;
 }

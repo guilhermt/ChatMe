@@ -1,16 +1,8 @@
 #!/usr/bin/env node
+import '../lib/utils/loadEnv';
 import * as cdk from 'aws-cdk-lib';
 import { ChatMeStack } from '../lib/chatme-stack';
-import { config } from 'dotenv';
 import { getEnvName } from '../lib/utils/getEnvName';
-
-const env = process.env.NODE_ENV ?? '';
-
-const envPath = env === 'prod' ? './.env.prod' : './.env.dev';
-
-config({
-  path: envPath
-});
 
 const app = new cdk.App({});
 

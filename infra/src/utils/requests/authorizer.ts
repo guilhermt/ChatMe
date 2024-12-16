@@ -3,11 +3,12 @@ import { CognitoJwtVerifier } from 'aws-jwt-verify';
 import { getDynamoItem } from '../dynamo/getItem';
 import { httpResponse } from './httpResponse';
 import { type Models } from '../../@types/models';
+import { configEnv } from '../../config';
 
-const clientId = process.env.USERPOOL_CLIENT_ID ?? '';
+const clientId = configEnv.userPoolClientId;
 
 const cognitoJwtVerifier = CognitoJwtVerifier.create({
-  userPoolId: process.env.USERPOOL_ID ?? '',
+  userPoolId: configEnv.userPoolId,
   tokenUse: 'access'
 });
 

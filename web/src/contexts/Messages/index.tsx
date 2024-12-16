@@ -34,7 +34,7 @@ interface Props {
   children: React.ReactNode;
 }
 
-export const PAGE_SIZE = 30;
+export const PAGE_SIZE = 50;
 
 const context = createContext<MessagesContextData>({} as MessagesContextData);
 
@@ -43,7 +43,7 @@ export const MessagesProvider: React.FC<Props> = ({ children }) => {
 
   const { user } = useAuth();
 
-  const { activeChat } = useChats();
+  const { activeChat, handleUpdateChatOnMessage } = useChats();
 
   const contactId = activeChat?.contactId;
 
@@ -97,11 +97,19 @@ export const MessagesProvider: React.FC<Props> = ({ children }) => {
   };
 
   const handleMessageReceived = useCallback((data: ReceivedMessageEvent) => {
-    if (data.contactId !== activeChat?.contactId) return;
+    const { chatId, message, contactId } = data;
+
+    handleUpdateChatOnMessage({
+      chatId,
+      message: message.content.data,
+      isIncome: true,
+    });
+
+    if (contactId !== activeChat?.contactId) return;
 
     setMessages(p => ({
       ...p,
-      data: [...p.data, data.message],
+      data: [...p.data, message],
     }));
   }, [contactId]);
 
@@ -109,6 +117,11 @@ export const MessagesProvider: React.FC<Props> = ({ children }) => {
     if (!contactId || !chatId || !userId) return;
 
     handleEmitMessage({ message, contactId, chatId });
+
+    handleUpdateChatOnMessage({
+      chatId,
+      message,
+    });
 
     const now = Date.now();
 

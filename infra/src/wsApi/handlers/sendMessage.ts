@@ -5,6 +5,10 @@ import { type Models } from '../../@types/models';
 import { sendDataToConnection } from '../../utils/ws/sendDataToConnection';
 import { v4 } from 'uuid';
 import { createDynamoItem } from '../../utils/dynamo/createItem';
+import { createUpdateObject } from '../../utils/dynamo/createUpdateObject';
+import { updateDynamoItem } from '../../utils/dynamo/editItem';
+import { getDynamoItem } from '../../utils/dynamo/getItem';
+import { DataType } from '../../@types/enums';
 
 interface SendMessageEvent {
   action: 'sendMessage',
@@ -19,6 +23,7 @@ interface ReceivedMessageEvent {
   eventType: 'received_message';
   message: Models.Message;
   contactId: string;
+  chatId: string
 }
 
 export const handler = async (event: APIGatewayProxyEvent) => {
@@ -27,7 +32,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
 
     const { message, chatId, contactId } = body?.data ?? {};
 
-    if (!message?.data || !contactId) {
+    if (!message?.data || !chatId || !contactId) {
       return httpResponse('Invalid Request', 404);
     }
 
@@ -51,6 +56,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
       pk: `chat#${chatId}`,
       sk: `message#${messageId}`,
       id: messageId,
+      dataType: DataType.MESSAGE,
       createdAt: now,
       updatedAt: now,
       gsi: now,
@@ -60,12 +66,40 @@ export const handler = async (event: APIGatewayProxyEvent) => {
       content: message
     };
 
+    const userChatKeys = {
+      pk: `chat#${userId}`,
+      sk: `chat#${chatId}`
+    };
+
+    const contactChatKeys = {
+      pk: `chat#${contactId}`,
+      sk: `chat#${chatId}`
+    };
+
+    const contactChat = await getDynamoItem<Models.Chat>(contactChatKeys);
+
+    const chatsUpdatedProps = {
+      updatedAt: now,
+      gsi: now,
+      lastMessage: message.data
+    } as Models.Chat;
+
+    const contactChatUpdateProps = {
+      ...chatsUpdatedProps,
+      unreadMessages: contactChat!.unreadMessages + 1
+    } as Models.Chat;
+
+    const userChatUpdate = createUpdateObject(chatsUpdatedProps);
+
+    const contactChatUpdate = createUpdateObject(contactChatUpdateProps);
+
     const contactConnection = allConnections.find(conn => conn.userId === contactId);
 
     const messageEvent: ReceivedMessageEvent = {
       eventType: 'received_message',
       message: messageItem,
-      contactId: userId
+      contactId: userId,
+      chatId
     };
 
     const sendMessageToReceiver = async () => {
@@ -76,7 +110,9 @@ export const handler = async (event: APIGatewayProxyEvent) => {
 
     await Promise.all([
       createDynamoItem(messageItem),
-      sendMessageToReceiver()
+      sendMessageToReceiver(),
+      updateDynamoItem(userChatKeys, userChatUpdate),
+      updateDynamoItem(contactChatKeys, contactChatUpdate)
     ]);
 
     return httpResponse({});

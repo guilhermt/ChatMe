@@ -1,10 +1,10 @@
-const slackToken = process.env.SLACK_BOT_TOKEN;
+import { configEnv } from '../../config';
 
 export const sendSlackNotification = async (channel: string, blocks: any) => {
   const url = 'https://slack.com/api/chat.postMessage';
 
   const headers = {
-    Authorization: `Bearer ${slackToken}`,
+    Authorization: `Bearer ${configEnv.slackToken}`,
     'Content-Type': 'application/json'
   };
 

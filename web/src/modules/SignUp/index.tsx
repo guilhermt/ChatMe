@@ -2,6 +2,7 @@ import {
   Anchor,
   Button,
   Card,
+  Container,
   Flex,
   Image,
   Loader,
@@ -70,92 +71,80 @@ export const SignUp = () => {
   };
 
   return (
-    <Flex w="100vw" h="100vh" justify="space-between" align="center" pos="relative">
+    <Container className="module-container">
+      <Stack justify="center" align="center" h="100%" w="100%">
+        <Flex align="center" w="100%" justify="center" gap="md">
+          <Image src="/svg/logo-chat-me.svg" w={80} />
 
-      <Flex
-        w="100%"
-        h="100%"
-        align="center"
-        justify="center"
-        bg="var(--mantine-color-body)"
-        pos="absolute"
-        right={0}
-        style={{ borderRadius: 18 }}
-      >
-        <Stack justify="start" w={isMobile ? '100%' : ''}>
-          <Flex align="center" w="100%" justify="center" gap="md">
-            <Image src="/svg/logo-chat-me.svg" w={80} />
+          <Text fw={500} fz={50} c="dark.9">
+            ChatMe
+          </Text>
+        </Flex>
 
-            <Text fw={500} fz={50} c="dark.9">
-              ChatMe
-            </Text>
-          </Flex>
+        <Text ta="center" fz={24} fw={500} c="dark.3">
+          Crie sua conta
+        </Text>
 
-          <Card radius="md" w={isMobile ? '100%' : 460} bg="transparent" p={isMobile ? '' : 0}>
-            <form onSubmit={form.onSubmit(handleSignUpSubmit)}>
-              <Stack gap={40}>
-                <Text ta="center" fz={24}>
-                  Crie sua conta
-                </Text>
+        <Card radius="md" w={isMobile ? '100%' : 460} bg="transparent" p={isMobile ? '' : 0}>
+          <form onSubmit={form.onSubmit(handleSignUpSubmit)}>
+            <Stack gap={40}>
+              <Stack>
+                <TextInput
+                  required
+                  label="Nome"
+                  placeholder="Digite seu nome"
+                  size="md"
+                  {...form.getInputProps('name')}
+                />
 
-                <Stack>
-                  <TextInput
-                    required
-                    label="Nome"
-                    placeholder="Digite seu nome"
-                    size="md"
-                    {...form.getInputProps('name')}
-                  />
+                <TextInput
+                  required
+                  label="E-mail"
+                  placeholder="Digite seu e-mail"
+                  size="md"
+                  {...form.getInputProps('email')}
+                />
 
-                  <TextInput
-                    required
-                    label="E-mail"
-                    placeholder="Digite seu e-mail"
-                    size="md"
-                    {...form.getInputProps('email')}
-                  />
-
-                  <PasswordInput
-                    required
-                    withAsterisk
-                    label="Senha"
-                    size="md"
-                    placeholder="Crie uma senha"
-                    description="Mínimo de 6 dígitos"
-                    {...form.getInputProps('password')
-                    }
-                  />
-                </Stack>
-
-                <Stack>
-                  <Button fullWidth size="md" type="submit" disabled={isLoading}>
-                    {isLoading ? <Loader size="sm" /> : 'Cadastrar'}
-                  </Button>
-
-                  {error && (
-                    <Text ta="center" c="red" fw={500} fz={18}>
-                      {error}
-                    </Text>
-                  )}
-
-                  <Text fw={500} ta="center" c="dark.6">
-                      Já tem uma conta?{' '}
-
-                    <Anchor
-                      c="var(--mantine-primary-color-8)"
-                      onClick={() => navigate('/sign-in')}
-                      fw={500}
-                      style={{ alignSelf: 'center' }}
-                    >
-                        Faça login
-                    </Anchor>
-                  </Text>
-                </Stack>
+                <PasswordInput
+                  required
+                  withAsterisk
+                  label="Senha"
+                  size="md"
+                  placeholder="Crie uma senha"
+                  description="Mínimo de 6 dígitos"
+                  {...form.getInputProps('password')
+                  }
+                />
               </Stack>
-            </form>
-          </Card>
-        </Stack>
-      </Flex>
-    </Flex>
+
+              <Stack>
+                <Button fullWidth size="md" type="submit" disabled={isLoading}>
+                  {isLoading ? <Loader size="sm" /> : 'Cadastrar'}
+                </Button>
+
+                {error && (
+                  <Text ta="center" c="red" fw={500} fz={18}>
+                    {error}
+                  </Text>
+                )}
+
+                <Text fw={500} ta="center" c="dark.6">
+                  Já tem uma conta?{' '}
+
+                  <Anchor
+                    c="var(--mantine-primary-color-8)"
+                    onClick={() => navigate('/sign-in')}
+                    fw={500}
+                    style={{ alignSelf: 'center' }}
+                  >
+                    Faça login
+                  </Anchor>
+                </Text>
+              </Stack>
+            </Stack>
+          </form>
+        </Card>
+      </Stack>
+    </Container>
   );
 };

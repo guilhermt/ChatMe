@@ -1,4 +1,4 @@
-import { CorsHttpMethod, HttpApi } from 'aws-cdk-lib/aws-apigatewayv2';
+import { CorsHttpMethod, HttpApi, type WebSocketApi, DomainName } from 'aws-cdk-lib/aws-apigatewayv2';
 import { type Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Construct } from 'constructs';
 import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
@@ -10,12 +10,15 @@ import { getEnvName } from '../utils/getEnvName';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Runtime } from 'aws-cdk-lib/aws-lambda';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { configEnv } from '../config';
 
 interface RestAPIProps {
   dynamoTable: Table;
   userPoolClientId: string;
   userPool: UserPool;
   bucket: Bucket;
+  wsAPI: WebSocketApi
 }
 
 interface RouteProps {
@@ -25,6 +28,7 @@ interface RouteProps {
   routeMethod: HttpMethod;
   bucketPermission?: boolean;
   cognitoPermission?: boolean;
+  wsEventsPermission?: boolean
 }
 
 export class RestAPI extends Construct {
@@ -33,24 +37,34 @@ export class RestAPI extends Construct {
   constructor(scope: Construct, id: string, props: RestAPIProps) {
     super(scope, id);
 
-    const { dynamoTable, userPoolClientId, userPool, bucket } = props;
+    const { dynamoTable, userPoolClientId, userPool, bucket, wsAPI } = props;
+
+    const certificate = Certificate.fromCertificateArn(this, 'Certificate', configEnv.certificateArn);
+
+    const allowOrigins = configEnv.isProd ? [`https://${configEnv.domainNames.webApp}`] : ['*'];
 
     const httpApi = new HttpApi(this, 'ApiGateway', {
       apiName: getEnvName('ChatMe REST API'),
       corsPreflight: {
         allowMethods: [CorsHttpMethod.ANY],
-        allowOrigins: ['*'],
+        allowOrigins,
         allowHeaders: ['Authorization', 'Content-Type']
+      },
+      defaultDomainMapping: {
+        domainName: new DomainName(this, 'ApiDomainName', {
+          domainName: configEnv.domainNames.restApi,
+          certificate
+        })
       }
     });
 
     const environment = {
-      ENVIRONMENT: process.env.ENVIRONMENT ?? '',
+      ENVIRONMENT: configEnv.env,
       TABLE_NAME: dynamoTable.tableName,
       BUCKET_NAME: bucket.bucketName,
       USERPOOL_CLIENT_ID: userPoolClientId,
       USERPOOL_ID: userPool.userPoolId,
-      SLACK_BOT_TOKEN: process.env.SLACK_BOT_TOKEN ?? ''
+      SLACK_BOT_TOKEN: configEnv.slackBotToken
     };
 
     const handlersPath = path.join(__dirname, '../../src/restApi/handlers');
@@ -85,13 +99,21 @@ export class RestAPI extends Construct {
         lambdaName: 'StartChat',
         lambdaEntry: 'chats/startChat.ts',
         routePath: '/chats',
-        routeMethod: HttpMethod.POST
+        routeMethod: HttpMethod.POST,
+        wsEventsPermission: true
       },
       {
         lambdaName: 'ListMessages',
         lambdaEntry: 'messages/listMessages.ts',
         routePath: '/messages/{chatId}',
         routeMethod: HttpMethod.GET
+      },
+      {
+        lambdaName: 'updateProfile',
+        lambdaEntry: 'users/updateProfile.ts',
+        routePath: '/users/me',
+        routeMethod: HttpMethod.PATCH,
+        bucketPermission: true
       }
     ];
 
@@ -102,7 +124,8 @@ export class RestAPI extends Construct {
         routeMethod,
         routePath,
         bucketPermission,
-        cognitoPermission
+        cognitoPermission,
+        wsEventsPermission
       } = props;
 
       const entry = path.join(handlersPath, lambdaEntry);
@@ -137,6 +160,8 @@ export class RestAPI extends Construct {
           'cognito-idp:AdminSetUserPassword'
         );
       }
+
+      if (wsEventsPermission) wsAPI.grantManageConnections(lambda);
 
       const integration = new HttpLambdaIntegration(integrationId, lambda);
 

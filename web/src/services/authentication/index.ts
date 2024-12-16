@@ -114,6 +114,18 @@ const signUp = async (data: Authentication.SignUpInput) => {
   await api.post('sign-up', data);
 };
 
+const updateUser = async ({ name, profilePicture }: Authentication.UpdateUserInput) => {
+  const formData = new FormData();
+
+  formData.append('name', name);
+
+  if (profilePicture) formData.append('profilePicture', profilePicture);
+
+  const res = await api.patch<Authentication.UpdateUserOutput>('users/me', formData);
+
+  return res.data;
+};
+
 export const authentication = {
   signIn,
   getUser,
@@ -121,4 +133,5 @@ export const authentication = {
   requestNewPassword,
   sendNewPassword,
   signUp,
+  updateUser,
 };

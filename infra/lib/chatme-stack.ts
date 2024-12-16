@@ -17,18 +17,19 @@ export class ChatMeStack extends cdk.Stack {
 
     const { bucket } = new Storage(this, 'Storage');
 
-    const { restApiUrl } = new RestAPI(this, 'RestApi', {
+    const { wsAPI } = new WebSocketAPI(this, 'WebSocketApi', {
       dynamoTable,
       userPoolClientId,
       userPool,
       bucket
     });
 
-    const { webSocketApiUrl } = new WebSocketAPI(this, 'WebSocketApi', {
+    const { restApiUrl } = new RestAPI(this, 'RestApi', {
       dynamoTable,
       userPoolClientId,
       userPool,
-      bucket
+      bucket,
+      wsAPI
     });
 
     const { webAppUrl } = new WebApp(this, 'WebApp');
@@ -42,7 +43,7 @@ export class ChatMeStack extends cdk.Stack {
     });
 
     new cdk.CfnOutput(this, 'WebSocketApiUrl', {
-      value: webSocketApiUrl
+      value: wsAPI.apiEndpoint
     });
 
     new cdk.CfnOutput(this, 'UserPoolId', {

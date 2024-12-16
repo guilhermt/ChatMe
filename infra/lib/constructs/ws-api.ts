@@ -1,4 +1,4 @@
-import { WebSocketApi, WebSocketStage } from 'aws-cdk-lib/aws-apigatewayv2';
+import { DomainName, WebSocketApi, WebSocketStage } from 'aws-cdk-lib/aws-apigatewayv2';
 import { type Table } from 'aws-cdk-lib/aws-dynamodb';
 import { Construct } from 'constructs';
 import { WebSocketLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations';
@@ -12,6 +12,8 @@ import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Queue } from 'aws-cdk-lib/aws-sqs';
 import { Duration } from 'aws-cdk-lib';
 import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
+import { Certificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { configEnv } from '../config';
 
 interface WebSocketAPIProps {
   dynamoTable: Table;
@@ -21,14 +23,12 @@ interface WebSocketAPIProps {
 }
 
 export class WebSocketAPI extends Construct {
-  readonly webSocketApiUrl: string;
+  readonly wsAPI: WebSocketApi;
 
   constructor(scope: Construct, id: string, props: WebSocketAPIProps) {
     super(scope, id);
 
     const { dynamoTable, userPoolClientId, userPool, bucket } = props;
-
-    const ENVIRONMENT = process.env.ENVIRONMENT ?? '';
 
     const queue = new Queue(this, 'ChatMeQueue', {
       queueName: getEnvName('ChatMe-Queue'),
@@ -36,7 +36,7 @@ export class WebSocketAPI extends Construct {
     });
 
     const environment = {
-      ENVIRONMENT,
+      ENVIRONMENT: configEnv.env,
       TABLE_NAME: dynamoTable.tableName,
       BUCKET_NAME: bucket.bucketName,
       USERPOOL_CLIENT_ID: userPoolClientId,
@@ -78,6 +78,18 @@ export class WebSocketAPI extends Construct {
       ...baseLambdaProps
     });
 
+    const viewChatHandler = new NodejsFunction(this, 'ChatMe-ViewChat', {
+      functionName: getEnvName('ChatMe-ViewChat'),
+      entry: path.join(handlersPath, 'viewChat.ts'),
+      ...baseLambdaProps
+    });
+
+    const typingChatHandler = new NodejsFunction(this, 'ChatMe-TypingChat', {
+      functionName: getEnvName('ChatMe-TypingChat'),
+      entry: path.join(handlersPath, 'typingChat.ts'),
+      ...baseLambdaProps
+    });
+
     const webSocketApi = new WebSocketApi(this, 'WebSocketApi', {
       apiName: getEnvName('ChatMe WebSocket API'),
       connectRouteOptions: {
@@ -92,10 +104,26 @@ export class WebSocketAPI extends Construct {
       integration: new WebSocketLambdaIntegration('SendMessageRoute', sendMessageHandler)
     });
 
+    webSocketApi.addRoute('viewChat', {
+      integration: new WebSocketLambdaIntegration('ViewChatRoute', viewChatHandler)
+    });
+
+    webSocketApi.addRoute('typingChat', {
+      integration: new WebSocketLambdaIntegration('TypingChatRoute', typingChatHandler)
+    });
+
+    const certificate = Certificate.fromCertificateArn(this, 'Certificate', configEnv.certificateArn);
+
     new WebSocketStage(this, 'WebSocketApiStage', {
       webSocketApi,
-      stageName: ENVIRONMENT,
-      autoDeploy: true
+      stageName: configEnv.env,
+      autoDeploy: true,
+      domainMapping: {
+        domainName: new DomainName(this, 'ApiDomainName', {
+          domainName: configEnv.domainNames.wsApi,
+          certificate
+        })
+      }
     });
 
     sqsHandler.addEventSource(
@@ -114,12 +142,15 @@ export class WebSocketAPI extends Construct {
     dynamoTable.grantReadWriteData(disconnectHandler);
     dynamoTable.grantReadWriteData(sqsHandler);
     dynamoTable.grantReadWriteData(sendMessageHandler);
+    dynamoTable.grantReadWriteData(viewChatHandler);
+    dynamoTable.grantReadWriteData(typingChatHandler);
 
     webSocketApi.grantManageConnections(connectHandler);
     webSocketApi.grantManageConnections(disconnectHandler);
     webSocketApi.grantManageConnections(sqsHandler);
     webSocketApi.grantManageConnections(sendMessageHandler);
+    webSocketApi.grantManageConnections(typingChatHandler);
 
-    this.webSocketApiUrl = webSocketApi.apiEndpoint;
+    this.wsAPI = webSocketApi;
   }
 }

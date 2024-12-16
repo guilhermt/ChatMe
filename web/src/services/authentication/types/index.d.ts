@@ -1,4 +1,6 @@
-import { TUser } from '@/contexts/Authentication';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
+import { Models } from '@/@types/models';
 
 export namespace Authentication {
   interface SignInInput {
@@ -12,7 +14,7 @@ export namespace Authentication {
     refreshToken: string;
   }
 
-  type GetUserOutput = TUser;
+  type GetUserOutput = Models.User;
 
   interface RefreshTokensInput {
     email: string;
@@ -40,5 +42,14 @@ export namespace Authentication {
     email: string;
     phone: string;
     password: string;
+  }
+
+  interface UpdateUserInput {
+    name: string;
+    profilePicture: File | null
+  }
+
+  interface UpdateUserOutput {
+    user: Models.User
   }
 }

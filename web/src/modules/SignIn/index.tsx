@@ -2,6 +2,7 @@ import {
   Anchor,
   Button,
   Card,
+  Container,
   Flex,
   Image,
   Loader,
@@ -88,90 +89,80 @@ export const SignIn = () => {
   };
 
   return (
-    <Flex w="100vw" h="100vh" justify="space-between" align="center" pos="relative">
-      <Flex
-        w="100%"
-        h="100%"
-        align="center"
-        justify="center"
-        bg="var(--mantine-color-body)"
-        pos="absolute"
-        right={0}
-        style={{ borderRadius: 18 }}
-      >
-        <Stack justify="start" w={isMobile ? '100%' : ''}>
-          <Flex align="center" w="100%" justify="center" gap="md">
-            <Image src="/svg/logo-chat-me.svg" w={80} />
+    <Container className="module-container">
+      <Stack justify="center" align="center" h="100%" w="100%">
+        <Flex align="center" w="100%" justify="center" gap="md">
+          <Image src="/svg/logo-chat-me.svg" w={80} />
 
-            <Text fw={500} fz={50} c="dark.9">
-              ChatMe
-            </Text>
-          </Flex>
+          <Text fw={500} fz={50} c="dark.9">
+            ChatMe
+          </Text>
+        </Flex>
 
-          <Card radius="md" w={isMobile ? '100%' : 460} bg="transparent" p={isMobile ? '' : 0}>
-            <form onSubmit={form.onSubmit((values) => handleSignInSubmit(values))}>
-              <Stack gap={40}>
-                <Text ta="center" fz={24}>
-                  Faça login para acessar suas conversas
-                </Text>
+        <Text ta="center" fz={24} fw={500} c="dark.3">
+          Acesse a sua conta
+        </Text>
 
-                <Stack>
-                  <TextInput
-                    label="E-mail"
-                    placeholder="Digite seu e-mail"
+        <Card radius="md" w={isMobile ? '100%' : 460} bg="transparent" p={isMobile ? '' : 0}>
+          <form onSubmit={form.onSubmit((values) => handleSignInSubmit(values))}>
+            <Stack gap={40}>
+
+              <Stack>
+                <TextInput
+                  label="E-mail"
+                  placeholder="Digite seu e-mail"
+                  size="md"
+                  {...form.getInputProps('email')}
+                />
+
+                <Stack gap={4}>
+                  <PasswordInput
+                    label="Senha"
+                    placeholder="Digite sua senha"
                     size="md"
-                    {...form.getInputProps('email')}
+                    {...form.getInputProps('password')}
                   />
 
-                  <Stack gap={4}>
-                    <PasswordInput
-                      label="Senha"
-                      placeholder="Digite sua senha"
-                      size="md"
-                      {...form.getInputProps('password')}
-                    />
-
-                    <Anchor
-                      c="var(--mantine-primary-color-8)"
-                      onClick={handleForgotPassword}
-                      fz={18}
-                      fw={500}
-                      style={{ alignSelf: 'end' }}
-                    >
+                  <Anchor
+                    c="var(--mantine-primary-color-8)"
+                    onClick={handleForgotPassword}
+                    fz={18}
+                    fw={500}
+                    style={{ alignSelf: 'end' }}
+                  >
                     Esqueci minha senha
-                    </Anchor>
-                  </Stack>
-                </Stack>
-
-                <Stack>
-                  <Button fullWidth size="md" type="submit" disabled={isLoading}>
-                    {isLoading ? <Loader size="sm" /> : 'Entrar'}
-                  </Button>
-
-                  {error && (
-                    <Text ta="center" c="red" fw={500} fz={18}>
-                      {error}
-                    </Text>
-                  )}
-
-                  <Text fw={500} ta="center" c="dark.6">
-                      Ainda não tem uma conta?{' '}
-
-                    <Anchor
-                      c="var(--mantine-primary-color-8)"
-                      onClick={() => navigate('/sign-up')}
-                      fw={500}
-                      style={{ alignSelf: 'center' }}
-                    >
-                        Clique aqui para criar
-                    </Anchor>
-                  </Text>
+                  </Anchor>
                 </Stack>
               </Stack>
-            </form>
-          </Card>
-        </Stack>
-      </Flex>
-    </Flex>
+
+              <Stack>
+                <Button fullWidth size="md" type="submit" disabled={isLoading}>
+                  {isLoading ? <Loader size="sm" /> : 'Entrar'}
+                </Button>
+
+                {error && (
+                  <Text ta="center" c="red" fw={500} fz={18}>
+                    {error}
+                  </Text>
+                )}
+
+                <Text fw={500} ta="center" c="dark.6">
+                      Ainda não tem uma conta?{' '}
+
+                  <Anchor
+                    c="var(--mantine-primary-color-8)"
+                    onClick={() => navigate('/sign-up')}
+                    fw={500}
+                    style={{ alignSelf: 'center' }}
+                  >
+                        Clique aqui para criar
+                  </Anchor>
+                </Text>
+              </Stack>
+            </Stack>
+          </form>
+        </Card>
+      </Stack>
+    </Container>
   );
 };

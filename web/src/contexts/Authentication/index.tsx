@@ -24,6 +24,7 @@ interface AuthContextData {
   handleRequestNewPassword: (props: RequestNewPasswordProps) => Promise<void>;
   handleSendNewPassword: (props: SendNewPasswordProps) => Promise<void>;
   handleSignUp: (props: HandleSignUpProps) => Promise<void>;
+  handleUpdateUserProfile: (props: UpdateUserProfileProps) => Promise<void>
 }
 
 interface HandleSignInProps {
@@ -46,6 +47,11 @@ interface SendNewPasswordProps {
   email: string;
   code: string;
   newPassword: string;
+}
+
+interface UpdateUserProfileProps {
+  name: string;
+  profilePicture: File | null
 }
 
 interface Props {
@@ -219,6 +225,29 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
           color: 'green',
         });
       } catch (e) {
+        showErrorNotification();
+        throw e;
+      }
+    },
+    []
+  );
+
+  const handleUpdateUserProfile = useCallback(
+    async ({ name, profilePicture }: UpdateUserProfileProps) => {
+      try {
+        const { user } = await services.authentication.updateUser({ name, profilePicture });
+
+        setUser({
+          data: user,
+          isLoading: false,
+        });
+
+        showNotification({
+          title: 'Perfil Atualizado',
+          message: 'Seus contatos verão seu novo perfil',
+          color: 'green',
+        });
+      } catch (e) {
         console.log(e);
         showErrorNotification();
       }
@@ -245,7 +274,6 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
 
     if (!hasLoaded.current && allTokens) {
       loadContextData();
-      return;
     }
 
     const shouldLogin = !allTokens && !onAuthPage;
@@ -259,7 +287,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     if (shouldGoToHome) {
       navigate('/');
     }
-  }, [user.data, cookies, navigate, location.pathname, hasLoaded]);
+  }, [user.data, cookies, navigate, location.pathname]);
 
   useEffect(() => {
     handleRedirect();
@@ -273,6 +301,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
       handleLogout,
       handleRequestNewPassword,
       handleSendNewPassword,
+      handleUpdateUserProfile,
       handleSignUp,
     }),
     [
@@ -281,6 +310,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
       handleLogout,
       handleRequestNewPassword,
       handleSendNewPassword,
+      handleUpdateUserProfile,
       handleSignUp,
     ]
   );
