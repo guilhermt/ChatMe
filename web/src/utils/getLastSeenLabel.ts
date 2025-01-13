@@ -24,7 +24,7 @@ export const getLastSeenLabel = (lastSeen: number) => {
   if (days === 1) return `visto ontem às ${hours}h${minutes}`;
 
   const day = lastSeenDate.getDate().toString().padStart(2, '0');
-  const month = lastSeenDate.getMonth().toString().padStart(2, '0');
+  const month = (lastSeenDate.getMonth() + 1).toString().padStart(2, '0');
 
   return `visto em ${day}/${month}`;
 };
